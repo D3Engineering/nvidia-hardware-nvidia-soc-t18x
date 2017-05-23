@@ -94,6 +94,7 @@
 		pad-controllers = <&tegra_pmc TEGRA_IO_PAD_GROUP_SDMMC3_HV>;
 		pad-names = "sdmmc";
 		nvidia,en-periodic-calib;
+		force-non-removable-rescan;
 		status = "disabled";
 	};
 
