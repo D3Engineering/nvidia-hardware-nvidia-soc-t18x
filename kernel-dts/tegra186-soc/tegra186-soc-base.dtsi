@@ -1,7 +1,7 @@
 /*
  * tegra186-soc-base.dtsi: SoC Base DTSI file.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
 #include "tegra186-soc/tegra186-soc-disp-imp.dtsi"
 #include <dt-bindings/soc/gp10b-fuse.h>
 #include <dt-bindings/gpio/tegra186-gpio.h>
+#include "dt-bindings/input/input.h"
 
 / {
 	compatible = "nvidia,tegra186";
@@ -360,8 +361,8 @@
 				gap-page = <1>;
 			};
 			host1x_client_as: host1x_client {
-				iova-start = <0x0 0x5a500000>;
-				iova-size = <0x1 0x00000000>;
+				iova-start = <0x0 0x1000>;
+				iova-size = <0x1F 0xFFFFF000>;
 				alignment = <0xFFFFF>;
 				num-pf-page = <0>;
 				gap-page = <1>;
@@ -746,6 +747,20 @@
 		status = "disabled";
 	};
 
+	gpio-keys {
+		compatible = "gpio-keys";
+		gpio-keys,name = "gpio-keys";
+		status = "disabled";
+
+		sw_wake {
+			label = "sw-wake";
+			interrupt-parent = <&pm_irq>;
+			interrupts = <0 19 IRQ_TYPE_LEVEL_HIGH>;
+			linux,code = <KEY_POWER>;
+			wakeup-source;
+		};
+	};
+
 	tegra_pmc_iopower: pmc-iopower {
 		compatible = "nvidia,tegra186-pmc-iopower";
 		pad-controllers = <&tegra_pmc TEGRA_IO_PAD_GROUP_UFS
@@ -902,6 +917,10 @@
 			reg = <0x0 0x15200000 0x0 0x30000>;
 			nvidia,valid_heads = <0x03>;
 			nvidia,disp_imp_table = <&disp_imp_table>;
+			iommus = <&smmu TEGRA_SID_NVDISPLAY>;
+			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
+			iommu-direct-regions = <&fb0_reserved &fb1_reserved
+						&fb2_reserved>;
 		};
 
 		head0: nvdisplay@15200000 {
@@ -960,8 +979,6 @@
 			pinctrl-11 = <&hdmi_dp1_dpd_enable>;
 			status = "disabled";
 			fb_reserved = <&fb0_reserved>;
-			iommu-direct-regions = <&fb0_reserved &fb1_reserved
-						&fb2_reserved>;
 		};
 
 		head1: nvdisplay@15210000 {
@@ -1020,8 +1037,6 @@
 			pinctrl-11 = <&hdmi_dp1_dpd_enable>;
 			status = "disabled";
 			fb_reserved = <&fb1_reserved>;
-			iommu-direct-regions = <&fb0_reserved &fb1_reserved
-						&fb2_reserved>;
 		};
 
 		head2: nvdisplay@15220000 {
@@ -1078,8 +1093,6 @@
 			pinctrl-11 = <&hdmi_dp1_dpd_enable>;
 			status = "disabled";
 			fb_reserved = <&fb2_reserved>;
-			iommu-direct-regions = <&fb0_reserved &fb1_reserved
-						&fb2_reserved>;
 		};
 
 		dsi: dsi {	/* dsi@15300000 */
@@ -1348,7 +1361,7 @@
 
 	gp10b {
 		compatible = "nvidia,tegra186-gp10b", "nvidia,gp10b";
-		dma-noncont;
+		dma-noncontig;
 		reg = <0x0 0x17000000 0x0 0x1000000
 		       0x0 0x18000000 0x0 0x1000000
 		       0x0 0x03b41000 0x0 0x00001000>;
@@ -3120,7 +3133,7 @@
 			compatible = "nvidia,tegra186-efuse-burn";
 			clocks = <&tegra_car TEGRA186_CLK_CLK_M>;
 			clock-names = "clk_m";
-			nvidia,tz = <&aotag>;
+			nvidia,tz = <&{/thermal-zones/GPU-therm}>;
 			nvidia,temp-range = <4000 101000>;
 			status = "disabled";
 		};
